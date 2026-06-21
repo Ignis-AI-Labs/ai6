@@ -1,4 +1,4 @@
-# ai6
+# AI-6
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-supported-d97757.svg)](https://claude.com/claude-code)
