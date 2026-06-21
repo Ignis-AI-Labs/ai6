@@ -1,5 +1,11 @@
 # ai6
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-supported-d97757.svg)](https://claude.com/claude-code)
+[![OpenCode](https://img.shields.io/badge/OpenCode-supported-000000.svg)](https://opencode.ai)
+[![Model-agnostic](https://img.shields.io/badge/models-bring%20your%20own-success.svg)](./docs/CONFIGURATION.md)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
+
 **Two AI coding agents, one shared law, reviewing each other's work.**
 
 ai6 wires a second model into your coding agent as a read-only reviewer. You build
@@ -29,6 +35,30 @@ You: build a feature in Claude Code
   default) reviews; build in OpenCode and Claude reviews. Roles are relative to
   whoever holds the pen, and the reviewer model is yours to choose.
 - **Auditable.** Every request/response is logged to `.ai6/exchange/`.
+
+## See it in action
+
+A reviewer catching a real bug — abridged from an actual ai6 run:
+
+```
+## Review Summary
+A get_user(name) lookup that builds its SQL by concatenating untrusted input —
+a textbook injection in auth code. Automatic BLOCK.
+
+## Findings
+- Severity: Critical
+- Location: auth.py:5  —  q = "SELECT * FROM users WHERE name = '" + name + "'"
+- Description: SQL injection. `' OR '1'='1` returns arbitrary rows; this is
+  auth code, so it directly violates Rule 8 (parameterize all queries).
+- Suggestion: conn.execute("SELECT * FROM users WHERE name = ?", (name,))
+
+VERDICT: BLOCK
+```
+
+The Builder then fixes every finding and re-submits, looping until `APPROVE` — so
+the bug never reaches your branch. ai6 even reviews itself: this repo was hardened
+across four rounds of its own loop before release (it caught a secret-exfiltration
+path, a silent installer failure, and a symlink bug along the way).
 
 ## Works with any model you have
 
