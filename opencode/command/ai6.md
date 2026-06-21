@@ -7,6 +7,13 @@ You are the **Builder**. A second model — **Claude (Opus)**, running read-only
 the **Reviewer**. The governing protocol is `AGENTS.md` at the project root (read it
 now if you have not). Rule 9 defines this loop.
 
+## Before you begin
+
+If there is **no `AGENTS.md`** at the project root, the Reviewer has no law to judge
+against. Scaffold one before reviewing: run `bash ~/.ai6/ai6-init.sh` (it creates
+`AGENTS.md` and `CLAUDE.md` from the ai6 template without overwriting anything), then
+tell the user to adapt `AGENTS.md` to their project.
+
 ## Your operating loop
 
 After you complete each **work unit** — a coherent, self-contained change (a finished

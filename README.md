@@ -103,8 +103,10 @@ Then copy this repo's [`AGENTS.md`](./AGENTS.md) into your project root and adap
 
 ## Usage
 
-1. Put an `AGENTS.md` at your project root (start from this repo's — Rules 1–8 are an
-   example; **Rule 9 is the ai6 protocol, keep it**).
+1. Scaffold the law into your project root: `bash ~/.ai6/ai6-init.sh`. This creates
+   `AGENTS.md` (Rules 1–8 are an example to adapt; **Rule 9 is the ai6 protocol —
+   keep it**) and a `CLAUDE.md` pointer, without overwriting anything you already have.
+   (Running `/ai6` will also offer to do this if it's missing.)
 2. In your session, run **`/ai6`** to enter paired-review mode.
 3. Build normally. After each work unit, the Builder dispatches a review, addresses
    findings, loops up to 3 rounds, and reports you the final verdict.

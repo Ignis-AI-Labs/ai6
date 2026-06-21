@@ -6,8 +6,9 @@ autonomous — reads it fully before touching anything.**
 This is the single source of truth. `CLAUDE.md` and any other agent entrypoint
 point here. Do not duplicate rules elsewhere; amend them here.
 
-> **Using ai6 in your own project?** Copy this file to your project root and adapt
-> it. **Rules 1–8 are an example starter set** — change them to match your stack and
+> **Using ai6 in your own project?** Run `bash ~/.ai6/ai6-init.sh` from your project
+> root to scaffold this file (and a `CLAUDE.md` pointer), or copy it manually — then
+> adapt it. **Rules 1–8 are an example starter set** — change them to match your stack and
 > standards. **Rule 9 is the ai6 review protocol** — keep it; it is what the loop
 > runs on. The Reviewer judges your work against whatever this file says, so the
 > stronger and more specific your rules, the sharper the review.

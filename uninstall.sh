@@ -18,8 +18,10 @@ PURGE="false"
 
 say() { printf 'ai6: %s\n' "$*"; }
 
-rm -f "${AI6_HOME}/ask-glm.sh" "${AI6_HOME}/ask-claude.sh" "${AI6_HOME}/lib/build-request.sh"
-rmdir "${AI6_HOME}/lib" 2>/dev/null || true
+rm -f "${AI6_HOME}/ask-glm.sh" "${AI6_HOME}/ask-claude.sh" "${AI6_HOME}/ai6-init.sh" \
+      "${AI6_HOME}/lib/build-request.sh" \
+      "${AI6_HOME}/templates/AGENTS.md" "${AI6_HOME}/templates/CLAUDE.md"
+rmdir "${AI6_HOME}/lib" "${AI6_HOME}/templates" 2>/dev/null || true
 rmdir "${AI6_HOME}" 2>/dev/null || true
 rm -f "${CLAUDE_CMD_DIR}/ai6.md"
 rm -f "${OC_BASE}/agent/ai6-reviewer.md" "${OC_BASE}/command/ai6.md" "${OC_BASE}/plugin/ai6.js"

@@ -11,6 +11,12 @@
 
 # Assemble the review request at "${REQ}".
 ai6_build_request() {
+  # A missing law means a degraded, near-useless review. Warn the human loudly
+  # rather than failing silently (Rule 3: no silent failures).
+  if [ ! -f "${PROJECT_DIR}/AGENTS.md" ]; then
+    echo "ai6: WARNING — no AGENTS.md at ${PROJECT_DIR}. Reviewing without a project law." >&2
+    echo "ai6:           Run 'bash ~/.ai6/ai6-init.sh' to scaffold one." >&2
+  fi
   {
     echo "# ai6 Review Request"
     echo
@@ -64,6 +70,12 @@ ai6_build_request() {
       echo '```markdown'
       cat "${PROJECT_DIR}/AGENTS.md"
       echo '```'
+    else
+      echo "## ⚠ No AGENTS.md at the project root"
+      echo
+      echo "No project law was provided. Review against sound general engineering"
+      echo "practice, and raise the missing AGENTS.md as a finding so the user can"
+      echo "scaffold one with \`bash ~/.ai6/ai6-init.sh\`."
     fi
   } > "${REQ}"
 }

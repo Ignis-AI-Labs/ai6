@@ -26,11 +26,15 @@ warn() { printf 'ai6: \033[33mWARN\033[0m %s\n' "$*" >&2; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # --- shared bridges --------------------------------------------------------
-mkdir -p "${AI6_HOME}/lib"
+mkdir -p "${AI6_HOME}/lib" "${AI6_HOME}/templates"
 install -m 0755 "${REPO}/bin/ask-glm.sh"           "${AI6_HOME}/ask-glm.sh"
 install -m 0755 "${REPO}/bin/ask-claude.sh"        "${AI6_HOME}/ask-claude.sh"
+install -m 0755 "${REPO}/bin/ai6-init.sh"          "${AI6_HOME}/ai6-init.sh"
 install -m 0644 "${REPO}/bin/lib/build-request.sh" "${AI6_HOME}/lib/build-request.sh"
-say "installed bridges -> ${AI6_HOME}/"
+# Templates used by ai6-init.sh to scaffold a project's law + pointer.
+install -m 0644 "${REPO}/AGENTS.md" "${AI6_HOME}/templates/AGENTS.md"
+install -m 0644 "${REPO}/CLAUDE.md" "${AI6_HOME}/templates/CLAUDE.md"
+say "installed bridges + init -> ${AI6_HOME}/"
 
 # --- config (never overwrite an existing one) ------------------------------
 mkdir -p "${CFG_DIR}"
@@ -79,4 +83,4 @@ else
 fi
 
 say "done."
-say "Next: copy this repo's AGENTS.md into your project root (adapt to taste), then run /ai6."
+say "Next: in your project root run 'bash ${AI6_HOME}/ai6-init.sh' to scaffold AGENTS.md + CLAUDE.md, then run /ai6."
