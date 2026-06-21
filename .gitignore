@@ -1,0 +1,4 @@
+.ai6/exchange/
+node_modules/
+*.log
+.DS_Store
