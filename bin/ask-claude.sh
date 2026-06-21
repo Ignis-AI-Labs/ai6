@@ -33,6 +33,8 @@ readonly EXCHANGE_DIR="${PROJECT_DIR}/.ai6/exchange"
 . "${SCRIPT_DIR}/lib/build-request.sh"
 # shellcheck source=/dev/null
 . "${SCRIPT_DIR}/lib/run-review.sh"
+# shellcheck source=/dev/null
+. "${SCRIPT_DIR}/lib/chunk-review.sh"
 
 if ! command -v claude >/dev/null 2>&1; then
   echo "ai6: claude is not installed or not on PATH." >&2
@@ -47,8 +49,6 @@ mkdir -p "${EXCHANGE_DIR}"
 STAMP="$(date +%Y%m%d-%H%M%S)-$$"
 REQ="${EXCHANGE_DIR}/${STAMP}-request.md"
 RESP="${EXCHANGE_DIR}/${STAMP}-response.md"
-
-ai6_build_request
 
 # --- reviewer contract (mirrors opencode/agent/ai6-reviewer.md) -------------
 read -r -d '' SYS <<'SYSEOF' || true
@@ -86,16 +86,22 @@ exactly "VERDICT: APPROVE", "VERDICT: REVISE", or "VERDICT: BLOCK" — it is par
 by machine.
 SYSEOF
 
-# --- invoke the reviewer (timeout + retry + serialize + graceful) ----------
+# Per-pass invoker used by ai6_review ($1=request file, $2=response file).
 # Request is piped via stdin to avoid argument-length limits on large diffs.
 # Mutating tools are disallowed so the reviewer stays read-only. The shared runner
 # bounds, retries, and never hangs.
-ai6_invoke_reviewer "${RESP}" "${REQ}" -- \
-  claude -p \
-    --model "${REVIEWER_MODEL}" \
-    --append-system-prompt "${SYS}" \
-    --disallowedTools "Write" "Edit" "NotebookEdit" "Bash" \
-    --output-format text
+ai6_invoke_one() {
+  ai6_invoke_reviewer "$2" "$1" -- \
+    claude -p \
+      --model "${REVIEWER_MODEL}" \
+      --append-system-prompt "${SYS}" \
+      --disallowedTools "Write" "Edit" "NotebookEdit" "Bash" \
+      --output-format text
+}
+
+# Build + review, splitting into multiple passes if the payload is large so the
+# reviewer always sees every file in full.
+ai6_review
 
 # --- emit ------------------------------------------------------------------
 echo "ai6: review logged at ${RESP}" >&2

@@ -160,6 +160,11 @@ projects by default (`AI6_SERIALIZE=1`) so they queue instead of contending. If 
 still can't complete it returns `VERDICT: ERROR` (reported as unreviewed) rather than
 freezing. See [`docs/CONFIGURATION.md`](./docs/CONFIGURATION.md#reliability-under-concurrency).
 
+**Does it truncate big files / large reviews?** No. If a review's payload would exceed
+the model's context window, ai6 splits the files into passes that each carry full file
+contents (plus `AGENTS.md` and the scoped diff), reviews each, and aggregates the
+verdicts — so the reviewer always sees every file in full. Tune with `AI6_MAX_CHARS`.
+
 ## Contributing
 
 This repo dogfoods itself: it has an `AGENTS.md`, and contributions are expected to

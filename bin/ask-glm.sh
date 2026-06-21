@@ -35,6 +35,8 @@ readonly EXCHANGE_DIR="${PROJECT_DIR}/.ai6/exchange"
 . "${SCRIPT_DIR}/lib/build-request.sh"
 # shellcheck source=/dev/null
 . "${SCRIPT_DIR}/lib/run-review.sh"
+# shellcheck source=/dev/null
+. "${SCRIPT_DIR}/lib/chunk-review.sh"
 
 if ! command -v opencode >/dev/null 2>&1; then
   echo "ai6: opencode is not installed or not on PATH." >&2
@@ -50,21 +52,25 @@ STAMP="$(date +%Y%m%d-%H%M%S)-$$"
 REQ="${EXCHANGE_DIR}/${STAMP}-request.md"
 RESP="${EXCHANGE_DIR}/${STAMP}-response.md"
 
-ai6_build_request
-
-# --- invoke the reviewer (timeout + retry + serialize + graceful) ----------
+# Per-pass invoker used by ai6_review ($1=request file, $2=response file).
 # The request is attached as a file to avoid argument-length limits on large diffs.
 # NOTE: the message positional MUST come before --file= (the flag is a greedy array).
 # --port 0 gives each run its own random server port (isolation across concurrent
 # projects). The shared runner bounds, retries, and never hangs.
-ai6_invoke_reviewer "${RESP}" /dev/null -- \
-  opencode run \
-    --agent "${AGENT}" \
-    --model "${MODEL}" \
-    --dir "${PROJECT_DIR}" \
-    --port 0 \
-    "Review the attached ai6 review request and respond in the required format." \
-    --file="${REQ}"
+ai6_invoke_one() {
+  ai6_invoke_reviewer "$2" /dev/null -- \
+    opencode run \
+      --agent "${AGENT}" \
+      --model "${MODEL}" \
+      --dir "${PROJECT_DIR}" \
+      --port 0 \
+      "Review the attached ai6 review request and respond in the required format." \
+      --file="$1"
+}
+
+# Build + review, splitting into multiple passes if the payload is large so the
+# reviewer always sees every file in full.
+ai6_review
 
 # --- emit ------------------------------------------------------------------
 echo "ai6: review logged at ${RESP}" >&2

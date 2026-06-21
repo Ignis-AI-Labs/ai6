@@ -27,9 +27,13 @@
 : "${AI6_SERIALIZE:=1}"        # 1 = only one review runs at a time across ALL projects
 : "${AI6_LOCK_TIMEOUT:=900}"   # max seconds to wait for the serialization lock
 
+# Large reviews auto-split into passes so the reviewer always sees every file in
+# full (never silently truncated by a model's context window).
+: "${AI6_MAX_CHARS:=200000}"   # approx max request size per pass, in bytes
+
 # Advanced: AI6_PLUGIN_TIMEOUT_MS overrides the OpenCode plugin's backstop (in ms).
 # The plugin reads process.env (not this file), so set it in the environment OpenCode
 # runs in. Leave unset to derive it from the values above.
 
 export AI6_REVIEWER_MODEL AI6_REVIEWER_AGENT AI6_CLAUDE_MODEL
-export AI6_TIMEOUT AI6_RETRIES AI6_RETRY_DELAY AI6_SERIALIZE AI6_LOCK_TIMEOUT
+export AI6_TIMEOUT AI6_RETRIES AI6_RETRY_DELAY AI6_SERIALIZE AI6_LOCK_TIMEOUT AI6_MAX_CHARS

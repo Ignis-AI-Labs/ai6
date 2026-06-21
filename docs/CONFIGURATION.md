@@ -24,6 +24,7 @@ built-in defaults.
 | `AI6_SERIALIZE`      | both bridges    | `1`                      | `1` = only one review runs at a time across all projects. |
 | `AI6_LOCK_TIMEOUT`   | both bridges    | `900`                    | Max seconds to wait for the serialization lock.    |
 | `AI6_PLUGIN_TIMEOUT_MS` | OpenCode plugin | derived               | Override the plugin's backstop (ms). Must be set in OpenCode's environment (the plugin reads `process.env`, not the config file). |
+| `AI6_MAX_CHARS`      | both bridges    | `200000`                 | Approx max request size per pass; larger reviews auto-split so files are never truncated. |
 
 ## Pick your models
 
@@ -80,6 +81,26 @@ permanent hang:
 Tuning tips: bump `AI6_TIMEOUT` for large diffs/slow models; raise `AI6_RETRIES` on
 flaky networks; keep `AI6_SERIALIZE=1` if you routinely run many projects at once.
 
+## Full-file visibility on large reviews
+
+A reviewer can only judge what it actually sees. If a work unit's payload (all files +
+diff + `AGENTS.md`) is bigger than the model's context window, the tail would be
+silently dropped — and a verdict on a half-seen file is worthless. ai6 prevents that:
+
+- The request size is estimated against `AI6_MAX_CHARS` (default 200 000 bytes).
+- If it fits, it's one pass — unchanged behavior.
+- If not, the files are **split into multiple passes** that each stay under budget.
+  Every pass carries full file contents, `AGENTS.md`, and the diff scoped to just
+  that pass's files, so the reviewer sees each file **in full**.
+- Each pass is reviewed independently and the verdicts are **aggregated** — the
+  strictest wins (`ERROR` > `BLOCK` > `REVISE` > `APPROVE`) — with every part's
+  findings included in the response.
+- A single file larger than the budget is reviewed alone with a warning (raise
+  `AI6_MAX_CHARS` if your model's window is large enough to take it in one piece).
+
+Set `AI6_MAX_CHARS` to match your reviewer model: lower it for smaller-context models,
+raise it for large-context ones to avoid unnecessary splitting.
+
 ## Notes
 
 - The shipped OpenCode reviewer agent (`ai6-reviewer`) declares a default `model:`,
@@ -89,3 +110,5 @@ flaky networks; keep `AI6_SERIALIZE=1` if you routinely run many projects at onc
   way (`opencode auth login`, Claude Code sign-in); ai6 uses whatever is configured.
 - The two directions are independent. You can run Claude-builds-only or
   OpenCode-builds-only; install whichever CLIs you use.
+- The git diff in a review is scoped to the files you submit; add related files to the
+  review list when their diff context matters.
