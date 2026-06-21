@@ -6,7 +6,13 @@
 [![Model-agnostic](https://img.shields.io/badge/models-bring%20your%20own-success.svg)](./docs/CONFIGURATION.md)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
+### AI-6 — an AI covering your six.
+
 **Two AI coding agents, one shared law, reviewing each other's work.**
+
+"Got your six" is pilot slang for *I'm watching your back*. ai6 puts a second AI on
+your six: while you build with one model, another covers your blind spots — every
+work unit, before anything ships.
 
 ai6 wires a second model into your coding agent as a read-only reviewer. You build
 with one model; the other independently reviews every finished unit of work against a
@@ -130,6 +136,10 @@ table and examples in [`docs/CONFIGURATION.md`](./docs/CONFIGURATION.md).
 ```
 
 ## FAQ
+
+**Why the name?** ai6 — read it as **AI-6**, *an AI covering your six.* "Got your
+six" is military/aviation slang for watching the vulnerable area behind you; ai6 is
+a second AI doing exactly that for your code.
 
 **Does the reviewer ever change my code?** No. Reviewers are strictly read-only.
 
