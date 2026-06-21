@@ -18,6 +18,12 @@ built-in defaults.
 | `AI6_REVIEWER_AGENT` | `ask-glm.sh`    | `ai6-reviewer`           | The OpenCode review agent (read-only persona).      |
 | `AI6_CLAUDE_MODEL`   | `ask-claude.sh` | `opus`                   | The reviewer model when the **other model builds** (a `claude --model` value). |
 | `AI6_BRIDGE`         | OpenCode plugin | `~/.ai6/ask-claude.sh`   | Path to the reverse bridge the `ai6_review` tool calls. |
+| `AI6_TIMEOUT`        | both bridges    | `300`                    | Seconds per review attempt before it's killed.     |
+| `AI6_RETRIES`        | both bridges    | `1`                      | Extra attempts after the first on timeout/failure. |
+| `AI6_RETRY_DELAY`    | both bridges    | `3`                      | Seconds between attempts.                           |
+| `AI6_SERIALIZE`      | both bridges    | `1`                      | `1` = only one review runs at a time across all projects. |
+| `AI6_LOCK_TIMEOUT`   | both bridges    | `900`                    | Max seconds to wait for the serialization lock.    |
+| `AI6_PLUGIN_TIMEOUT_MS` | OpenCode plugin | derived               | Override the plugin's backstop (ms). Must be set in OpenCode's environment (the plugin reads `process.env`, not the config file). |
 
 ## Pick your models
 
@@ -46,6 +52,33 @@ Or override for a single run without touching the file:
 ```bash
 AI6_REVIEWER_MODEL=openai/gpt-5 bash ~/.ai6/ask-glm.sh "context" file.ts
 ```
+
+## Reliability under concurrency
+
+Running reviews across several projects at once can stall the underlying CLIs (shared
+daemon, API rate limits, CPU/memory). ai6 is built so a stall can never become a
+permanent hang:
+
+- **Timeout** — every attempt is wrapped in `timeout AI6_TIMEOUT`. A wedged review is
+  killed, not waited on forever. Requires GNU `timeout` (Linux coreutils; on macOS
+  `brew install coreutils` provides `gtimeout`, which ai6 detects). If neither exists,
+  ai6 warns once and runs unbounded rather than failing.
+- **Retry** — on timeout/transient failure it retries `AI6_RETRIES` times (with
+  `AI6_RETRY_DELAY` between) before giving up.
+- **Serialize** — with `AI6_SERIALIZE=1` (default) a global `flock` lets only one
+  review run at a time across all projects, so they queue instead of contending. Set
+  `AI6_SERIALIZE=0` to allow full parallelism if your setup can handle it. Requires
+  `flock` (preinstalled on Linux via util-linux; on macOS `brew install flock`). If
+  it's missing, ai6 warns once and falls back to parallel — the timeout still applies.
+- **Isolation** — each `opencode run` uses `--port 0` (its own random server port),
+  and temp/exchange files are per-run, so concurrent reviews don't collide.
+- **Graceful give-up** — if a review still can't complete, the bridge returns
+  `VERDICT: ERROR` (never a hang). The work is reported as **unreviewed**, not
+  approved. The OpenCode `ai6_review` tool also honors cancellation and has its own
+  backstop so it can't freeze a session.
+
+Tuning tips: bump `AI6_TIMEOUT` for large diffs/slow models; raise `AI6_RETRIES` on
+flaky networks; keep `AI6_SERIALIZE=1` if you routinely run many projects at once.
 
 ## Notes
 

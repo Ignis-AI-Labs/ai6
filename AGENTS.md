@@ -152,6 +152,13 @@ VERDICT: APPROVE | REVISE | BLOCK
 - **REVISE** — has findings the Builder must address.
 - **BLOCK** — a Critical/High issue (security, data loss, broken build) is present.
 
+If the bridge itself cannot complete a review (timeout, reviewer unreachable) it
+returns **`VERDICT: ERROR`** after its retries. This is not a verdict on the code —
+the work is **unreviewed**. The Builder must report it to the human and must not treat
+it as APPROVE. Reviews are bounded, retried, and (optionally) serialized across
+concurrent projects so a hang can never stall the session; tune via `AI6_TIMEOUT`,
+`AI6_RETRIES`, and `AI6_SERIALIZE`.
+
 ### The loop
 
 1. Builder completes a work unit and dispatches a review.

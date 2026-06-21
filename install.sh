@@ -31,6 +31,7 @@ install -m 0755 "${REPO}/bin/ask-glm.sh"           "${AI6_HOME}/ask-glm.sh"
 install -m 0755 "${REPO}/bin/ask-claude.sh"        "${AI6_HOME}/ask-claude.sh"
 install -m 0755 "${REPO}/bin/ai6-init.sh"          "${AI6_HOME}/ai6-init.sh"
 install -m 0644 "${REPO}/bin/lib/build-request.sh" "${AI6_HOME}/lib/build-request.sh"
+install -m 0644 "${REPO}/bin/lib/run-review.sh"     "${AI6_HOME}/lib/run-review.sh"
 # Templates used by ai6-init.sh to scaffold a project's law + pointer.
 install -m 0644 "${REPO}/AGENTS.md" "${AI6_HOME}/templates/AGENTS.md"
 install -m 0644 "${REPO}/CLAUDE.md" "${AI6_HOME}/templates/CLAUDE.md"

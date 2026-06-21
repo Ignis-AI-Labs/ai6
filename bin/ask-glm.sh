@@ -33,6 +33,8 @@ readonly EXCHANGE_DIR="${PROJECT_DIR}/.ai6/exchange"
 
 # shellcheck source=/dev/null
 . "${SCRIPT_DIR}/lib/build-request.sh"
+# shellcheck source=/dev/null
+. "${SCRIPT_DIR}/lib/run-review.sh"
 
 if ! command -v opencode >/dev/null 2>&1; then
   echo "ai6: opencode is not installed or not on PATH." >&2
@@ -50,21 +52,19 @@ RESP="${EXCHANGE_DIR}/${STAMP}-response.md"
 
 ai6_build_request
 
-# --- invoke the reviewer ---------------------------------------------------
+# --- invoke the reviewer (timeout + retry + serialize + graceful) ----------
 # The request is attached as a file to avoid argument-length limits on large diffs.
 # NOTE: the message positional MUST come before --file= (the flag is a greedy array).
-if ! opencode run \
-      --agent "${AGENT}" \
-      --model "${MODEL}" \
-      --dir "${PROJECT_DIR}" \
-      "Review the attached ai6 review request and respond in the required format." \
-      --file="${REQ}" \
-      > "${RESP}" 2>"${RESP}.err"; then
-  echo "ai6: reviewer invocation failed. stderr:" >&2
-  cat "${RESP}.err" >&2
-  exit 1
-fi
-rm -f "${RESP}.err"
+# --port 0 gives each run its own random server port (isolation across concurrent
+# projects). The shared runner bounds, retries, and never hangs.
+ai6_invoke_reviewer "${RESP}" /dev/null -- \
+  opencode run \
+    --agent "${AGENT}" \
+    --model "${MODEL}" \
+    --dir "${PROJECT_DIR}" \
+    --port 0 \
+    "Review the attached ai6 review request and respond in the required format." \
+    --file="${REQ}"
 
 # --- emit ------------------------------------------------------------------
 echo "ai6: review logged at ${RESP}" >&2

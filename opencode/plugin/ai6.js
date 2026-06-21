@@ -60,17 +60,64 @@ export const Ai6Plugin = async ({ $, directory }) => {
             );
           }
 
+          // Backstop that only catches a wedged subprocess — the bridge's own
+          // graceful "VERDICT: ERROR" normally wins first. Honors OpenCode's cancel
+          // signal so a review can never freeze the whole session.
+          //
+          // Finite-number parse keeps an explicit 0 as 0 (|| would coerce it to the
+          // default and diverge from the bridge, which treats 0 literally).
+          const num = (v, d) => {
+            // Treat empty string as "unset" to match bash `${VAR:-default}` semantics
+            // (Number("") is 0, which would diverge from the bridge).
+            if (v === undefined || v === "") return d;
+            const n = Number(v);
+            return Number.isFinite(n) ? n : d;
+          };
+          const perAttempt = num(process.env.AI6_TIMEOUT, 300);
+          const attempts = num(process.env.AI6_RETRIES, 1) + 1;
+          const retryDelay = num(process.env.AI6_RETRY_DELAY, 3);
+          // The bridge's worst case is, per attempt, up to AI6_LOCK_TIMEOUT waiting
+          // for the lock plus AI6_TIMEOUT running, plus the inter-attempt delays.
+          // Mirror that here or the backstop could kill a legitimately-queued review.
+          // Mirror the bridge's exact test (enabled only for the literal "1").
+          const serialize = (process.env.AI6_SERIALIZE ?? "1") === "1";
+          const lockWait = serialize ? num(process.env.AI6_LOCK_TIMEOUT, 900) : 0;
+          const override = num(process.env.AI6_PLUGIN_TIMEOUT_MS, 0);
+          const maxMs =
+            override > 0
+              ? override
+              : ((perAttempt + lockWait) * attempts + retryDelay * (attempts - 1) + 60) * 1000;
+
+          let timer;
+          let abortHandler;
+          const guard = new Promise((_, reject) => {
+            timer = setTimeout(
+              () => reject(new Error(`timed out after ${Math.round(maxMs / 1000)}s`)),
+              maxMs,
+            );
+            abortHandler = () => reject(new Error("review cancelled"));
+            context.abort?.addEventListener?.("abort", abortHandler, { once: true });
+          });
+
+          // Keep the ShellPromise (not just .text()) so we can kill the subprocess if
+          // the backstop or a cancel wins — otherwise it keeps burning the reviewer
+          // model and holding the serialization lock in the background.
+          // Bun's $ escapes every interpolation; the array spreads into separate
+          // quoted args. Runs in the session's project dir so git diff/AGENTS.md resolve.
+          const proc = $`bash ${BRIDGE} ${args.context} ${args.files}`.cwd(dir);
           try {
-            // Bun's $ escapes every interpolation; the array spreads into separate
-            // quoted args. Runs in the session's project directory so the bridge's
-            // git diff and AGENTS.md resolve against the right repo.
-            return await $`bash ${BRIDGE} ${args.context} ${args.files}`
-              .cwd(dir)
-              .text();
+            return await Promise.race([proc.text(), guard]);
           } catch (err) {
+            // Best effort: the bridge's own `timeout` is the authoritative bound if
+            // this signal doesn't reach the reviewer grandchild under bash.
+            try { proc.kill?.(); } catch { /* best effort */ }
             const stdout = err?.stdout?.toString?.() ?? "";
             const stderr = err?.stderr?.toString?.() ?? "";
-            return `ai6: review invocation failed.\n${stdout}\n${stderr}\n${err?.message ?? err}`;
+            return `ai6: review invocation failed (${err?.message ?? err}). The work was NOT reviewed — do not treat it as approved.\n${stdout}\n${stderr}`;
+          } finally {
+            clearTimeout(timer);
+            // Avoid accumulating listeners on a long-lived session AbortSignal.
+            if (abortHandler) context.abort?.removeEventListener?.("abort", abortHandler);
           }
         },
       }),

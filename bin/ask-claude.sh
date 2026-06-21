@@ -31,6 +31,8 @@ readonly EXCHANGE_DIR="${PROJECT_DIR}/.ai6/exchange"
 
 # shellcheck source=/dev/null
 . "${SCRIPT_DIR}/lib/build-request.sh"
+# shellcheck source=/dev/null
+. "${SCRIPT_DIR}/lib/run-review.sh"
 
 if ! command -v claude >/dev/null 2>&1; then
   echo "ai6: claude is not installed or not on PATH." >&2
@@ -84,21 +86,16 @@ exactly "VERDICT: APPROVE", "VERDICT: REVISE", or "VERDICT: BLOCK" — it is par
 by machine.
 SYSEOF
 
-# --- invoke the reviewer ---------------------------------------------------
+# --- invoke the reviewer (timeout + retry + serialize + graceful) ----------
 # Request is piped via stdin to avoid argument-length limits on large diffs.
-# Mutating tools are disallowed so the reviewer stays read-only.
-if ! claude -p \
-      --model "${REVIEWER_MODEL}" \
-      --append-system-prompt "${SYS}" \
-      --disallowedTools "Write" "Edit" "NotebookEdit" "Bash" \
-      --output-format text \
-      < "${REQ}" \
-      > "${RESP}" 2>"${RESP}.err"; then
-  echo "ai6: Claude reviewer invocation failed. stderr:" >&2
-  cat "${RESP}.err" >&2
-  exit 1
-fi
-rm -f "${RESP}.err"
+# Mutating tools are disallowed so the reviewer stays read-only. The shared runner
+# bounds, retries, and never hangs.
+ai6_invoke_reviewer "${RESP}" "${REQ}" -- \
+  claude -p \
+    --model "${REVIEWER_MODEL}" \
+    --append-system-prompt "${SYS}" \
+    --disallowedTools "Write" "Edit" "NotebookEdit" "Bash" \
+    --output-format text
 
 # --- emit ------------------------------------------------------------------
 echo "ai6: review logged at ${RESP}" >&2

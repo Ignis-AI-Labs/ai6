@@ -18,4 +18,18 @@
 # A `claude --model` alias or full model id (e.g. opus, sonnet, claude-opus-4-8).
 : "${AI6_CLAUDE_MODEL:=opus}"
 
+# --- Reliability under concurrency (both bridges) ---
+# A review can never hang forever: each attempt is bounded, retried, and degraded to
+# a 'VERDICT: ERROR' if it can't complete.
+: "${AI6_TIMEOUT:=300}"        # seconds per review attempt before it's killed
+: "${AI6_RETRIES:=1}"          # extra attempts after the first (on timeout/failure)
+: "${AI6_RETRY_DELAY:=3}"      # seconds between attempts
+: "${AI6_SERIALIZE:=1}"        # 1 = only one review runs at a time across ALL projects
+: "${AI6_LOCK_TIMEOUT:=900}"   # max seconds to wait for the serialization lock
+
+# Advanced: AI6_PLUGIN_TIMEOUT_MS overrides the OpenCode plugin's backstop (in ms).
+# The plugin reads process.env (not this file), so set it in the environment OpenCode
+# runs in. Leave unset to derive it from the values above.
+
 export AI6_REVIEWER_MODEL AI6_REVIEWER_AGENT AI6_CLAUDE_MODEL
+export AI6_TIMEOUT AI6_RETRIES AI6_RETRY_DELAY AI6_SERIALIZE AI6_LOCK_TIMEOUT

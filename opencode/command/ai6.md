@@ -33,6 +33,10 @@ it's done:
 3. **Act on it:**
    - `APPROVE` → the work unit is done. Report the outcome to the user.
    - `REVISE` or `BLOCK` → address **every** finding, then re-run the review.
+   - `ERROR` → the review could not run (timed out or failed after retries). The work
+     is **unreviewed** — tell the user it didn't run and why; do **not** treat it as
+     approved. Retry once if it looks transient, otherwise proceed only with the
+     user's explicit go-ahead.
 
 4. **Loop** until `APPROVE` or **3 rounds** have elapsed.
 

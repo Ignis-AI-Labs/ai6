@@ -154,6 +154,12 @@ line). Batch coherent units; the `/ai6` command already nudges that.
 **Can I use the same model on both sides?** Yes, but the value comes from two
 *different* models — each catches the other's blind spots.
 
+**I run several projects at once and reviews hang.** They can't anymore: every review
+is bounded by `AI6_TIMEOUT`, retried `AI6_RETRIES` times, and serialized across
+projects by default (`AI6_SERIALIZE=1`) so they queue instead of contending. If one
+still can't complete it returns `VERDICT: ERROR` (reported as unreviewed) rather than
+freezing. See [`docs/CONFIGURATION.md`](./docs/CONFIGURATION.md#reliability-under-concurrency).
+
 ## Contributing
 
 This repo dogfoods itself: it has an `AGENTS.md`, and contributions are expected to
