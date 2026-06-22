@@ -18,9 +18,11 @@ PURGE="false"
 
 say() { printf 'ai6: %s\n' "$*"; }
 
-rm -f "${AI6_HOME}/ask-glm.sh" "${AI6_HOME}/ask-claude.sh" "${AI6_HOME}/ai6-init.sh" \
+rm -f "${AI6_HOME}/ask-glm.sh" "${AI6_HOME}/ask-claude.sh" \
+      "${AI6_HOME}/ask-openai.sh" \
+      "${AI6_HOME}/ai6-review.sh" "${AI6_HOME}/ai6-init.sh" \
       "${AI6_HOME}/lib/build-request.sh" "${AI6_HOME}/lib/run-review.sh" \
-      "${AI6_HOME}/lib/chunk-review.sh" \
+      "${AI6_HOME}/lib/chunk-review.sh" "${AI6_HOME}/lib/openai-chat.sh" \
       "${AI6_HOME}/templates/AGENTS.md" "${AI6_HOME}/templates/CLAUDE.md"
 rmdir "${AI6_HOME}/lib" "${AI6_HOME}/templates" 2>/dev/null || true
 rmdir "${AI6_HOME}" 2>/dev/null || true

@@ -4,12 +4,34 @@
 # that values passed inline on the command line (e.g. AI6_REVIEWER_MODEL=... )
 # still take precedence over what's set here.
 
-# --- Reviewer when Claude builds (ask-glm.sh, via OpenCode) ---
+# --- Forward-review routing (when Claude is the Builder) ---
+# Which bridge reviews Claude's work. Leave UNSET to auto-select: the second model
+# via OpenCode (ask-glm.sh) when `opencode` is on PATH, otherwise the Claude reviewer
+# (ask-claude.sh) so the loop still runs with no extra dependency. Set it to force a
+# specific bridge — a name beside the dispatcher in ~/.ai6, or an absolute path to a
+# custom one:
+#   ask-glm.sh     second model via OpenCode (needs opencode + a provider)
+#   ask-claude.sh  Claude reviews Claude (no extra deps; same-host, weaker 2nd view)
+#   ask-openai.sh  any OpenAI-compatible endpoint — local Ollama/llama.cpp or cloud (see below)
+# : "${AI6_FORWARD_BRIDGE:=ask-claude.sh}"
+
+# --- Reviewer when Claude builds via OpenCode (ask-glm.sh) ---
 # Any provider/model OpenCode can reach. Examples:
 #   zai-coding-plan/glm-5.2      (Z.AI)
 #   anthropic/claude-sonnet-4-6
 #   openai/gpt-5
 : "${AI6_REVIEWER_MODEL:=zai-coding-plan/glm-5.2}"
+
+# --- Reviewer via a generic OpenAI-compatible endpoint (ask-openai.sh) ---
+# A no-OpenCode option for ANY /v1/chat/completions backend — local or cloud. Enable it
+# with AI6_FORWARD_BRIDGE=ask-openai.sh (above), then point it at a backend:
+#   Ollama (local, free):  BASE=http://localhost:11434/v1   no key
+#   llama.cpp / Heretic:   BASE=http://127.0.0.1:8081/v1    no key (start the server first)
+#   MiniMax / GLM / etc:   BASE=<provider>/v1               set AI6_OPENAI_API_KEY
+# : "${AI6_OPENAI_BASE_URL:=http://localhost:11434/v1}"
+# : "${AI6_OPENAI_MODEL:=hf.co/Qwen/Qwen3-8B-GGUF:Q5_K_M}"
+# : "${AI6_OPENAI_API_KEY:=}"
+# : "${AI6_OPENAI_TEMPERATURE:=0}"
 
 # OpenCode agent used for the review (read-only persona shipped with ai6).
 : "${AI6_REVIEWER_AGENT:=ai6-reviewer}"

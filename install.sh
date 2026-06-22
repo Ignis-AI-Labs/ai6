@@ -5,6 +5,8 @@
 #
 # What it installs:
 #   ~/.ai6/ask-glm.sh, ~/.ai6/ask-claude.sh        the review bridges (shared)
+#   ~/.ai6/ask-openai.sh                            generic OpenAI-compatible bridge
+#   ~/.ai6/ai6-review.sh                            forward-review dispatcher
 #   ~/.config/ai6/config                            your config (created once)
 #   ~/.claude/commands/ai6.md                       the /ai6 command (Claude Code)
 #   ~/.config/opencode/{agent,command,plugin}/...   the OpenCode side
@@ -29,10 +31,13 @@ have() { command -v "$1" >/dev/null 2>&1; }
 mkdir -p "${AI6_HOME}/lib" "${AI6_HOME}/templates"
 install -m 0755 "${REPO}/bin/ask-glm.sh"           "${AI6_HOME}/ask-glm.sh"
 install -m 0755 "${REPO}/bin/ask-claude.sh"        "${AI6_HOME}/ask-claude.sh"
+install -m 0755 "${REPO}/bin/ask-openai.sh"        "${AI6_HOME}/ask-openai.sh"
+install -m 0755 "${REPO}/bin/ai6-review.sh"        "${AI6_HOME}/ai6-review.sh"
 install -m 0755 "${REPO}/bin/ai6-init.sh"          "${AI6_HOME}/ai6-init.sh"
 install -m 0644 "${REPO}/bin/lib/build-request.sh" "${AI6_HOME}/lib/build-request.sh"
 install -m 0644 "${REPO}/bin/lib/run-review.sh"     "${AI6_HOME}/lib/run-review.sh"
 install -m 0644 "${REPO}/bin/lib/chunk-review.sh"   "${AI6_HOME}/lib/chunk-review.sh"
+install -m 0644 "${REPO}/bin/lib/openai-chat.sh"    "${AI6_HOME}/lib/openai-chat.sh"
 # Templates used by ai6-init.sh to scaffold a project's law + pointer.
 install -m 0644 "${REPO}/AGENTS.md" "${AI6_HOME}/templates/AGENTS.md"
 install -m 0644 "${REPO}/CLAUDE.md" "${AI6_HOME}/templates/CLAUDE.md"
