@@ -1,11 +1,13 @@
 ---
-description: Enter ai6 paired-review mode — a second model reviews each completed work unit
+description: Enter ai6 paired-review mode — a reviewer model checks each completed work unit
 ---
 
 You are now operating in **ai6 paired-review mode** for the rest of this session.
-You are the **Builder**. A second model (default: GLM via OpenCode), running
-read-only, is the **Reviewer**. The governing protocol is `AGENTS.md` at the project
-root (read it now if you have not). Rule 9 defines this loop.
+You are the **Builder**. A read-only **Reviewer** model checks each work unit; the
+dispatcher picks it for you (the second model via OpenCode when available, otherwise
+Claude reviewing Claude — see Rule 9 / `docs/CONFIGURATION.md`). The governing
+protocol is `AGENTS.md` at the project root (read it now if you have not). Rule 9
+defines this loop.
 
 ## Before you begin
 
@@ -23,11 +25,12 @@ the following before telling the user it's done:
 1. **Dispatch a review.** Run:
 
    ```bash
-   bash ~/.ai6/ask-glm.sh "<concise description of what you did and why>" <changed file paths...>
+   bash ~/.ai6/ai6-review.sh "<concise description of what you did and why>" <changed file paths...>
    ```
 
-   Pass every file you created or modified in this work unit. The script gathers the
-   git diff, the full file contents, and `AGENTS.md`, and returns the Reviewer's review.
+   Pass every file you created or modified in this work unit. The dispatcher selects
+   the right bridge, which gathers the git diff, the full file contents, and
+   `AGENTS.md`, and returns the Reviewer's review.
 
 2. **Read the verdict** on the final `VERDICT:` line of the output.
 

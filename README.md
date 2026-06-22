@@ -95,6 +95,7 @@ cd ai6
 The installer is idempotent and only sets up the sides whose CLI it finds. It places:
 
 - `~/.ai6/ask-glm.sh`, `~/.ai6/ask-claude.sh` — the review bridges
+- `~/.ai6/ai6-review.sh` — the forward-review dispatcher (picks the bridge when Claude builds)
 - `~/.config/ai6/config` — your settings (created once, never overwritten)
 - `~/.claude/commands/ai6.md` — the `/ai6` command for Claude Code
 - `~/.config/opencode/{agent,command,plugin}/…` — the OpenCode side

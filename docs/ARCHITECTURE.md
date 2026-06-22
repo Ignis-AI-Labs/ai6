@@ -21,12 +21,19 @@ Builder can't forget to call it.
 ## The two directions
 
 ```
-Claude builds ───▶  ~/.ai6/ask-glm.sh  ──▶  opencode run --agent ai6-reviewer  ──▶  GLM reviews
-   (Reviewer's verdict ◀──────────────────────────────────────────────────────────────┘)
+Claude builds ─▶ ai6-review.sh ─┬─▶ ask-glm.sh    ─▶ opencode run         ─▶ second model reviews
+ (dispatcher selects a bridge)  │
+                                └─▶ ask-claude.sh ─▶ claude -p (read-only) ─▶ Claude reviews
+                                    (when opencode is absent, or forced via AI6_FORWARD_BRIDGE)
+ ◀──────────────────────────── the chosen Reviewer's verdict ────────────────────────────────
 
-GLM builds ──▶  ai6_review tool ──▶  ~/.ai6/ask-claude.sh  ──▶  claude -p (read-only)  ──▶  Claude reviews
-   (Reviewer's verdict ◀──────────────────────────────────────────────────────────────────┘)
+GLM builds ─▶ ai6_review tool ─▶ ask-claude.sh ─▶ claude -p (read-only) ─▶ Claude reviews
+ ◀──────────────────────────── Reviewer's verdict ──────────────────────────────────────────
 ```
+
+When Claude is the Builder, the `/ai6` command calls `ai6-review.sh`, a dispatcher
+that selects the bridge (second model via OpenCode by default; Claude reviewing Claude
+when OpenCode isn't installed). See [`CONFIGURATION.md`](./CONFIGURATION.md#forward-review-routing-who-reviews-claude).
 
 ## The request
 
