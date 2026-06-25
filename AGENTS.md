@@ -47,23 +47,64 @@ below — there is one standard, not two, and it does not change with who holds 
 - No dead code: no unused imports, functions, variables, or commented-out logic.
 - Minimal surface area: write only what the current task needs.
 
-## RULE 2: BRANCHING
+## RULE 2: BRANCHING — ONE BRANCH PER CONTRIBUTOR, FOREVER
+
+**Non-negotiable. Read this in full before you ever touch `git checkout -b`.**
 
 ```
 main (or master)            ← deployed, stable — protected
     └── dev                 ← integration — protected
-            ├── elijah/dev      ← a human contributor's personal dev branch
-            ├── claude/dev      ← an autonomous AI agent's personal dev branch
-            └── <who>/dev       ← exactly one branch per person OR per autonomous agent
+            ├── elijah/dev      ← a human contributor's permanent personal branch
+            ├── claude/dev      ← an autonomous AI agent's permanent personal branch
+            └── <who>/dev       ← exactly one branch per identity, kept forever
 ```
 
-Each contributor — human or autonomous AI — has **exactly one** branch (`<who>/dev`)
-that they keep forever; all of their work happens there. No `feature/...`,
-`bugfix/...`, or topic branches for any other reason — one identity, one branch.
-Work flows strictly upward: `<who>/dev` → `dev` → `main`, by PR at each level. When
-an AI is operating under a human's direction, it uses the human's branch (the human
-owns the work); when it runs autonomously as a team member, it creates and owns
-`<agent>/dev`.
+### The rule (three lines, zero exceptions)
+
+1. **One identity, one branch, forever.** Every contributor — human or autonomous
+   AI — has **exactly one** branch: `<who>/dev`. All of their work lands there.
+   The branch is never deleted, never replaced, never paralleled.
+2. **NEVER create any other branch.** No `feature/…`, no `bugfix/…`, no
+   `hotfix/…`, no `fix/…`, no `topic/…`, no per-task or per-fix branches of any
+   name. **Zero exceptions.** Not for a "small fix." Not for a "quick experiment."
+   Not because the work feels distinct. Not because two things are happening at
+   once. If you are about to run `git checkout -b` for any reason other than
+   first-time setup of your own `<who>/dev`, **stop — you are about to violate
+   this rule.**
+3. **Flow is strictly upward.** `<who>/dev` → `dev` → `main`, by PR at each
+   level. Never commit to `dev` or `main` directly. Never open a sibling-to-sibling
+   PR. Never target anyone else's `<who>/dev`.
+
+### Whose branch is whose
+
+- AI **under human direction** (paired-programming, agent-in-the-loop) → uses the
+  **human's** `<human>/dev`. The human owns the branch and the work.
+- AI **running autonomously** as a team member → creates and owns its own
+  `<agent>/dev`. The same one-branch-forever rule applies to it.
+- Branch slug = the contributor's identity (git `user.name` lowercased, or an
+  explicit handle) followed by `/dev`. Examples: `elijah/dev`, `claude/dev`.
+
+### If you find yourself on a non-conforming branch
+
+Stop. Do not commit further. Flag it to the human, log it in
+`docs/audit/ISSUE_TRACKER.md` (Rule 7), then re-anchor the work onto the correct
+`<who>/dev` and delete the offending branch. **Do not "just finish the work" on
+the wrong branch.**
+
+### Why this is so strict
+
+Every previous violation of this protocol started with someone reasoning "this
+one is different." It never is. One-branch-per-fix produces drift, stale
+dependencies, merge storms, hidden parallel histories, and — especially with
+agents — quietly invented branch names to "stay organized." The cost of opening
+a wrong branch is high. The cost of staying in your own `<who>/dev` is zero.
+
+### Consequences
+
+Creating **any** branch other than your `<who>/dev` is a Rule 2 violation. Per
+the Consequences of Deviation table, silent deviation is grounds for removal —
+even one such branch must be flagged immediately, logged, and the work
+re-anchored before continuing.
 
 ## RULE 3: CODE STRUCTURE
 
