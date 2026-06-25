@@ -50,14 +50,20 @@ below — there is one standard, not two, and it does not change with who holds 
 ## RULE 2: BRANCHING
 
 ```
-main              ← live, deployed, stable — protected
-    └── develop   ← integration branch — protected
-            ├── feature/your-feature-name
-            └── bugfix/your-bugfix-name
+main (or master)            ← deployed, stable — protected
+    └── dev                 ← integration — protected
+            ├── elijah/dev      ← a human contributor's personal dev branch
+            ├── claude/dev      ← an autonomous AI agent's personal dev branch
+            └── <who>/dev       ← exactly one branch per person OR per autonomous agent
 ```
 
-All work happens on feature branches; target `develop`, never `main` directly;
-branch names follow `[type]/[description]`.
+Each contributor — human or autonomous AI — has **exactly one** branch (`<who>/dev`)
+that they keep forever; all of their work happens there. No `feature/...`,
+`bugfix/...`, or topic branches for any other reason — one identity, one branch.
+Work flows strictly upward: `<who>/dev` → `dev` → `main`, by PR at each level. When
+an AI is operating under a human's direction, it uses the human's branch (the human
+owns the work); when it runs autonomously as a team member, it creates and owns
+`<agent>/dev`.
 
 ## RULE 3: CODE STRUCTURE
 
