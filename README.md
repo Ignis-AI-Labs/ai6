@@ -170,8 +170,11 @@ against the entire Comprehensive Security Audit Protocol shipped at
 `~/.ai6/security/SECURITY_CHECKLIST.md`, section by section, producing an aggregated
 report at `.ai6/audits/`. It's **exhaustive and token-heavy by design** (expect ~1-3M
 reviewer-model tokens and 10-30+ minutes per scan), with an explicit confirmation
-gate. Override the checklist per project by placing a `docs/SECURITY_CHECKLIST.md` at
-the project root, or globally via `AI6_SECURITY_CHECKLIST=path`.
+gate. Override the checklist per project with `docs/SECURITY_CHECKLIST.md` or
+globally via `AI6_SECURITY_CHECKLIST=path`. Full details — checklist precedence,
+verdict semantics (`PASS / NEEDS-WORK / BLOCK / ERROR`), how to scope a partial
+scan, where output lands — in
+[`docs/CONFIGURATION.md`](./docs/CONFIGURATION.md#security-audit-mode-ai6-security).
 
 **What about prompt injection in reviewed files?** ai6 feeds your file contents and
 diff to the reviewer model, so a hostile file could in principle try to manipulate
