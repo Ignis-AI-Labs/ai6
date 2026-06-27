@@ -20,10 +20,22 @@
 #   AI6_MAX_CHARS   approx max request size per pass in bytes (default 200000)
 
 # Parse the final VERDICT token from a response file (APPROVE/REVISE/BLOCK/ERROR).
+# Matches only an EXACT canonical verdict line. A *malformed* reviewer response
+# (typo, lowercase, trailing token, extra punctuation, two-space separator, CRLF
+# line endings) yields no match and collapses to ERROR; the fail-safe direction
+# is always ERROR. Note this parser does NOT by itself defeat a canonical injected
+# line (exactly "VERDICT: APPROVE" echoed by a fooled reviewer into its response):
+# that attack is defended in *layers* — `tail -1` makes the reviewer's own real
+# verdict win if it comes last, and the reviewer persona is explicitly told to
+# treat reviewed content as DATA, not instructions (SEC-001).
 ai6_verdict_of() {
-  local v
-  v="$(grep -E '^VERDICT:' "$1" 2>/dev/null | tail -1 | awk '{print $2}' || true)"
-  [ -n "${v}" ] && echo "${v}" || echo "ERROR"
+  local v_line
+  v_line="$(grep -E '^VERDICT: (APPROVE|REVISE|BLOCK|ERROR)$' "$1" 2>/dev/null | tail -1 || true)"
+  if [ -n "${v_line}" ]; then
+    echo "${v_line#VERDICT: }"
+  else
+    echo "ERROR"
+  fi
 }
 
 # ai6_review: build + invoke, chunking by AI6_MAX_CHARS when needed. Writes RESP.
@@ -78,7 +90,7 @@ ai6_review() {
   if [ "${n}" -le 1 ]; then
     ai6_build_request
     ai6_invoke_one "${REQ}" "${RESP}" || true
-    grep -qE '^VERDICT:' "${RESP}" 2>/dev/null || printf '\nVERDICT: ERROR\n' >> "${RESP}"
+    grep -qE '^VERDICT: (APPROVE|REVISE|BLOCK|ERROR)$' "${RESP}" 2>/dev/null || printf '\nVERDICT: ERROR\n' >> "${RESP}"
     return 0
   fi
 
@@ -103,7 +115,7 @@ EOF
     ai6_build_request
     [ "$(wc -c < "${REQ}" 2>/dev/null || echo 0)" -gt "${budget}" ] && echo "ai6: WARNING — part ${k} request still exceeds AI6_MAX_CHARS; the model may truncate it." >&2
     ai6_invoke_one "${REQ}" "${presp}" || true
-    grep -qE '^VERDICT:' "${presp}" 2>/dev/null || printf '\nVERDICT: ERROR\n' >> "${presp}"
+    grep -qE '^VERDICT: (APPROVE|REVISE|BLOCK|ERROR)$' "${presp}" 2>/dev/null || printf '\nVERDICT: ERROR\n' >> "${presp}"
     v="$(ai6_verdict_of "${presp}")"
     verdicts+=( "${v}" )
     {
