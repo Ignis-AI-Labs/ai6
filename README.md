@@ -165,6 +165,14 @@ the model's context window, ai6 splits the files into passes that each carry ful
 contents (plus `AGENTS.md` and the scoped diff), reviews each, and aggregates the
 verdicts — so the reviewer always sees every file in full. Tune with `AI6_MAX_CHARS`.
 
+**Is there a full security audit mode?** Yes — **`/ai6-security`** runs the project
+against the entire Comprehensive Security Audit Protocol shipped at
+`~/.ai6/security/SECURITY_CHECKLIST.md`, section by section, producing an aggregated
+report at `.ai6/audits/`. It's **exhaustive and token-heavy by design** (expect ~1-3M
+reviewer-model tokens and 10-30+ minutes per scan), with an explicit confirmation
+gate. Override the checklist per project by placing a `docs/SECURITY_CHECKLIST.md` at
+the project root, or globally via `AI6_SECURITY_CHECKLIST=path`.
+
 ## Contributing
 
 This repo dogfoods itself: it has an `AGENTS.md`, and contributions are expected to
