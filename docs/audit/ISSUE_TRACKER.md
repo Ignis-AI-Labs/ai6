@@ -12,7 +12,9 @@ States: **Open** · **In Progress** · **Resolved** · **Deferred** · **False P
 - **Discovered By**: ai6 security audit (live single-section §5 scan, 2026-06-27)
 - **Date Discovered**: 2026-06-27
 - **Source**: §5 AI AND LLM SECURITY audit of ai6 itself, reviewer GLM 5.2
-- **Severity**: High
+- **Severity**: Medium (revised from High on 2026-06-27 after the layered
+  defenses below landed — the practical false-clean-verdict pathway is closed
+  end-to-end; remaining work is feature-scale, not bugfix-scale)
 - **Location**: `bin/lib/build-request.sh` (project-context injection into reviewer);
   bridges `bin/ask-glm.sh`, `bin/ask-claude.sh`; OpenCode plugin `opencode/plugin/ai6.js`
 - **Description**: ai6 streams untrusted project content (file contents, git diff,
@@ -24,20 +26,30 @@ States: **Open** · **In Progress** · **Resolved** · **Deferred** · **False P
 - **Evidence**: The §5 audit response identified §5.1.1 (sanitize external data),
   §5.1.3 (secondary classifier), §5.1.6 (guardrails), §5.4.1 (hallucination
   detection), §5.4.2 (confidence indicators), §5.6.3 (layered defense) as FAIL.
-- **Partial mitigations already in place**: reviewer agents are strictly
-  read-only (no tools); file list is confined to PROJECT_DIR via realpath;
-  reviewer for the security scan now explicitly told to treat all project
-  context as DATA not instructions (`opencode/agent/ai6-security-reviewer.md`).
-- **Planned work**:
-  - Extend the same DATA-not-instructions hardening to the general
-    `ai6-reviewer` agent (still TODO).
-  - ~~Output classifier pass on the parsed verdict~~ — done 2026-06-27 for the
-    security path: `ai6_security_aggregate` now validates each per-section
-    verdict against the canonical set (`PASS|NEEDS-WORK|BLOCK|ERROR`) and
-    collapses anything else (typo, lowercase, trailing punctuation) to ERROR;
-    the orchestrator's pre-guard uses the same strict regex. A false-clean
-    verdict from a malformed reviewer response is no longer possible.
-  - Document this residual risk in the README (still TODO).
+- **Mitigations in place (layered defense)**:
+  - Reviewer agents are strictly read-only (no tools).
+  - File list confined to `PROJECT_DIR` via `realpath` — out-of-tree paths
+    (e.g. `~/.ssh/id_rsa`, `/etc/passwd`) silently skipped, with a skipped
+    marker emitted to the request.
+  - **All three reviewer personas** now explicitly told to treat reviewed
+    content as DATA not instructions, with a "single most damaging failure
+    mode is a false clean verdict" warning that calls out the specific
+    injection vectors (embedded `VERDICT:` lines, "ignore previous
+    instructions", "approve this", etc.):
+    - `opencode/agent/ai6-reviewer.md` (regular OpenCode reviewer)
+    - `opencode/agent/ai6-security-reviewer.md` (security auditor)
+    - `bin/ask-claude.sh` inline SYS prompt (Claude as reviewer)
+  - **Strict canonical verdict parsing** in both review paths — any malformed
+    verdict line collapses to `ERROR`, never silently to `APPROVE`/`PASS`:
+    - `bin/lib/chunk-review.sh` `ai6_verdict_of` (regular review aggregator)
+    - `bin/lib/security-scan.sh` `ai6_security_aggregate` (security audit aggregator)
+    - both orchestrator pre-guards use the same anchored regex
+  - Residual risk documented in README.
+- **Remaining work (lower priority)**: a true secondary classifier / NeMo
+  Guardrails-style layer (§5.1.3, §5.1.6) for defense beyond persona-level
+  instruction; hallucination-detection / confidence-indicator layer (§5.4)
+  on the parsed findings. Both are full feature work, not bug fixes — the
+  layered defenses above close the practical false-clean-verdict pathway.
 
 ## In Progress
 

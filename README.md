@@ -173,6 +173,16 @@ reviewer-model tokens and 10-30+ minutes per scan), with an explicit confirmatio
 gate. Override the checklist per project by placing a `docs/SECURITY_CHECKLIST.md` at
 the project root, or globally via `AI6_SECURITY_CHECKLIST=path`.
 
+**What about prompt injection in reviewed files?** ai6 feeds your file contents and
+diff to the reviewer model, so a hostile file could in principle try to manipulate
+the verdict. Layered defenses in place: reviewer agents are strictly **read-only**
+(no tools) and told explicitly to treat all reviewed content as **data, not
+instructions**; the file list is **confined to the project root** by `realpath` so a
+misbehaving builder can't pull in `~/.ssh/id_rsa` or `.env`; and every verdict is
+**strictly parsed** against the canonical set (`APPROVE|REVISE|BLOCK|ERROR` — anything
+malformed collapses to `ERROR`, never silently to a clean verdict). The residual risk
+is tracked as **SEC-001** in `docs/audit/ISSUE_TRACKER.md`.
+
 ## Contributing
 
 This repo dogfoods itself: it has an `AGENTS.md`, and contributions are expected to
