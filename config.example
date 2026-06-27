@@ -31,9 +31,19 @@
 # full (never silently truncated by a model's context window).
 : "${AI6_MAX_CHARS:=200000}"   # approx max request size per pass, in bytes
 
+# --- Security audit (the full /ai6-security scan) ---
+# Uses its own agent persona by default (ai6-security-reviewer). Override either
+# the model or the agent only if you know what you're doing — the wrong agent
+# loses the section-aware audit rubric.
+: "${AI6_SECURITY_MODEL:=${AI6_REVIEWER_MODEL}}"
+: "${AI6_SECURITY_AGENT:=ai6-security-reviewer}"
+# AI6_SECURITY_CHECKLIST: leave unset to use project's docs/SECURITY_CHECKLIST.md
+# if present, otherwise the installed default. Set to an absolute path to override.
+
 # Advanced: AI6_PLUGIN_TIMEOUT_MS overrides the OpenCode plugin's backstop (in ms).
 # The plugin reads process.env (not this file), so set it in the environment OpenCode
 # runs in. Leave unset to derive it from the values above.
 
 export AI6_REVIEWER_MODEL AI6_REVIEWER_AGENT AI6_CLAUDE_MODEL
 export AI6_TIMEOUT AI6_RETRIES AI6_RETRY_DELAY AI6_SERIALIZE AI6_LOCK_TIMEOUT AI6_MAX_CHARS
+export AI6_SECURITY_MODEL AI6_SECURITY_AGENT AI6_SECURITY_CHECKLIST
