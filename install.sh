@@ -26,17 +26,21 @@ warn() { printf 'ai6: \033[33mWARN\033[0m %s\n' "$*" >&2; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # --- shared bridges --------------------------------------------------------
-mkdir -p "${AI6_HOME}/lib" "${AI6_HOME}/templates"
-install -m 0755 "${REPO}/bin/ask-glm.sh"           "${AI6_HOME}/ask-glm.sh"
-install -m 0755 "${REPO}/bin/ask-claude.sh"        "${AI6_HOME}/ask-claude.sh"
-install -m 0755 "${REPO}/bin/ai6-init.sh"          "${AI6_HOME}/ai6-init.sh"
-install -m 0644 "${REPO}/bin/lib/build-request.sh" "${AI6_HOME}/lib/build-request.sh"
-install -m 0644 "${REPO}/bin/lib/run-review.sh"     "${AI6_HOME}/lib/run-review.sh"
-install -m 0644 "${REPO}/bin/lib/chunk-review.sh"   "${AI6_HOME}/lib/chunk-review.sh"
+mkdir -p "${AI6_HOME}/lib" "${AI6_HOME}/templates" "${AI6_HOME}/security"
+install -m 0755 "${REPO}/bin/ask-glm.sh"             "${AI6_HOME}/ask-glm.sh"
+install -m 0755 "${REPO}/bin/ask-claude.sh"          "${AI6_HOME}/ask-claude.sh"
+install -m 0755 "${REPO}/bin/ai6-init.sh"            "${AI6_HOME}/ai6-init.sh"
+install -m 0755 "${REPO}/bin/ai6-security-scan.sh"   "${AI6_HOME}/ai6-security-scan.sh"
+install -m 0644 "${REPO}/bin/lib/build-request.sh"   "${AI6_HOME}/lib/build-request.sh"
+install -m 0644 "${REPO}/bin/lib/run-review.sh"      "${AI6_HOME}/lib/run-review.sh"
+install -m 0644 "${REPO}/bin/lib/chunk-review.sh"    "${AI6_HOME}/lib/chunk-review.sh"
+install -m 0644 "${REPO}/bin/lib/security-scan.sh"   "${AI6_HOME}/lib/security-scan.sh"
 # Templates used by ai6-init.sh to scaffold a project's law + pointer.
-install -m 0644 "${REPO}/AGENTS.md" "${AI6_HOME}/templates/AGENTS.md"
-install -m 0644 "${REPO}/CLAUDE.md" "${AI6_HOME}/templates/CLAUDE.md"
-say "installed bridges + init -> ${AI6_HOME}/"
+install -m 0644 "${REPO}/AGENTS.md"                  "${AI6_HOME}/templates/AGENTS.md"
+install -m 0644 "${REPO}/CLAUDE.md"                  "${AI6_HOME}/templates/CLAUDE.md"
+# Default security checklist (project can override at docs/SECURITY_CHECKLIST.md).
+install -m 0644 "${REPO}/security/SECURITY_CHECKLIST.md" "${AI6_HOME}/security/SECURITY_CHECKLIST.md"
+say "installed bridges + init + security-scan -> ${AI6_HOME}/"
 
 # --- config (never overwrite an existing one) ------------------------------
 mkdir -p "${CFG_DIR}"
@@ -50,8 +54,9 @@ fi
 # --- Claude Code side ------------------------------------------------------
 if have claude; then
   mkdir -p "${CLAUDE_CMD_DIR}"
-  install -m 0644 "${REPO}/claude/commands/ai6.md" "${CLAUDE_CMD_DIR}/ai6.md"
-  say "installed Claude command -> ${CLAUDE_CMD_DIR}/ai6.md  (run /ai6 in Claude Code)"
+  install -m 0644 "${REPO}/claude/commands/ai6.md"           "${CLAUDE_CMD_DIR}/ai6.md"
+  install -m 0644 "${REPO}/claude/commands/ai6-security.md"  "${CLAUDE_CMD_DIR}/ai6-security.md"
+  say "installed Claude commands -> ${CLAUDE_CMD_DIR}/ai6{,-security}.md  (run /ai6 or /ai6-security)"
 else
   warn "'claude' not found on PATH — skipped the Claude Code side."
 fi
@@ -59,9 +64,11 @@ fi
 # --- OpenCode side ---------------------------------------------------------
 if have opencode; then
   mkdir -p "${OC_BASE}/agent" "${OC_BASE}/command" "${OC_BASE}/plugin"
-  install -m 0644 "${REPO}/opencode/agent/ai6-reviewer.md" "${OC_BASE}/agent/ai6-reviewer.md"
-  install -m 0644 "${REPO}/opencode/command/ai6.md"        "${OC_BASE}/command/ai6.md"
-  install -m 0644 "${REPO}/opencode/plugin/ai6.js"         "${OC_BASE}/plugin/ai6.js"
+  install -m 0644 "${REPO}/opencode/agent/ai6-reviewer.md"          "${OC_BASE}/agent/ai6-reviewer.md"
+  install -m 0644 "${REPO}/opencode/agent/ai6-security-reviewer.md" "${OC_BASE}/agent/ai6-security-reviewer.md"
+  install -m 0644 "${REPO}/opencode/command/ai6.md"                 "${OC_BASE}/command/ai6.md"
+  install -m 0644 "${REPO}/opencode/command/ai6-security.md"        "${OC_BASE}/command/ai6-security.md"
+  install -m 0644 "${REPO}/opencode/plugin/ai6.js"                  "${OC_BASE}/plugin/ai6.js"
   say "installed OpenCode agent/command -> ${OC_BASE}/  (run /ai6 in OpenCode)"
 
   # The plugin imports @opencode-ai/plugin; it must resolve from the config dir.

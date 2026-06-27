@@ -18,14 +18,18 @@ PURGE="false"
 
 say() { printf 'ai6: %s\n' "$*"; }
 
-rm -f "${AI6_HOME}/ask-glm.sh" "${AI6_HOME}/ask-claude.sh" "${AI6_HOME}/ai6-init.sh" \
+rm -f "${AI6_HOME}/ask-glm.sh" "${AI6_HOME}/ask-claude.sh" \
+      "${AI6_HOME}/ai6-init.sh" "${AI6_HOME}/ai6-security-scan.sh" \
       "${AI6_HOME}/lib/build-request.sh" "${AI6_HOME}/lib/run-review.sh" \
-      "${AI6_HOME}/lib/chunk-review.sh" \
-      "${AI6_HOME}/templates/AGENTS.md" "${AI6_HOME}/templates/CLAUDE.md"
-rmdir "${AI6_HOME}/lib" "${AI6_HOME}/templates" 2>/dev/null || true
+      "${AI6_HOME}/lib/chunk-review.sh" "${AI6_HOME}/lib/security-scan.sh" \
+      "${AI6_HOME}/templates/AGENTS.md" "${AI6_HOME}/templates/CLAUDE.md" \
+      "${AI6_HOME}/security/SECURITY_CHECKLIST.md"
+rmdir "${AI6_HOME}/lib" "${AI6_HOME}/templates" "${AI6_HOME}/security" 2>/dev/null || true
 rmdir "${AI6_HOME}" 2>/dev/null || true
-rm -f "${CLAUDE_CMD_DIR}/ai6.md"
-rm -f "${OC_BASE}/agent/ai6-reviewer.md" "${OC_BASE}/command/ai6.md" "${OC_BASE}/plugin/ai6.js"
+rm -f "${CLAUDE_CMD_DIR}/ai6.md" "${CLAUDE_CMD_DIR}/ai6-security.md"
+rm -f "${OC_BASE}/agent/ai6-reviewer.md" "${OC_BASE}/agent/ai6-security-reviewer.md" \
+      "${OC_BASE}/command/ai6.md" "${OC_BASE}/command/ai6-security.md" \
+      "${OC_BASE}/plugin/ai6.js"
 say "removed bridges, commands, agent, and plugin."
 
 if [ "${PURGE}" = "true" ]; then
